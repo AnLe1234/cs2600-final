@@ -27,8 +27,14 @@ playervs() {
 
 esp32ve() {
     echo 2
+    echo $var
     while true
     do
+        if ! pgrep -x "tictactoe" > /dev/null
+        then
+            echo "Done"
+            break
+        fi
         loop_mqtt
     done
 }

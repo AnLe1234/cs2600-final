@@ -38,10 +38,17 @@ void player_turn(char *board, char symbol) {
         loc = input_check(loc);
         if (loc > 9 || loc < 1) {
             printf("Enter limit co-ordinate.\n");
-        } else if (board[loc-1] != ' ') {
+        } else if (board[loc - 1] != ' ') {
             printf("Location taken.\n");
         } else {
-            board[loc-1] = symbol;
+            char buffer[128];
+            snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m %d", loc);
+            printf("%s\n", buffer);
+            int status = system(buffer);
+            if (status == 1) {
+                printf("Fail to send co-ordinate\n");
+            }
+            board[loc - 1] = symbol;
             break;
         }
     } while (1);
@@ -60,8 +67,16 @@ void computer_turn(char *board, char symbol) {
     int rand_location;
     srand((unsigned)time(&t));
     do {
-        rand_location = rand() % 10;
+        rand_location = rand() % 9;
     } while (board[rand_location] != ' ');
+
+    char buffer[128];
+    snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m %d", rand_location+1);
+    printf("%s\n", buffer);
+    int status = system(buffer);
+    if (status == 1) {
+        printf("Fail to send co-ordinate\n");
+    }
     board[rand_location] = symbol;
 };
 // check who's the winner based on symbol and game type
@@ -84,8 +99,8 @@ int winner(char symbol, int game_type) {
 int main(void) {
     int game_type = 0;
     char board[9] = {' ', ' ', ' ',
-                        ' ', ' ', ' ',
-                        ' ', ' ', ' '};
+                     ' ', ' ', ' ',
+                     ' ', ' ', ' '};
     printf("1) player vs. player\t2) player vs. computer\n: ");
     do {
         game_type = input_check(game_type);
@@ -148,8 +163,12 @@ int main(void) {
         printf("Draw!\n");
     } else {
         // there's winnerls
-
         winner(symbol, game_type);
+    }
+    printf(".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m 0");
+    int status = system(".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m 0");
+    if (status == 1) {
+        printf("Fail to send co-ordinate\n");
     }
     return EXIT_SUCCESS;
 }
