@@ -9,20 +9,43 @@ source config.sh
 # topic=
 exe="./bin/tictactoe.exe"
 
-# for i in $server $user_name $password $topic
-# do
-#     echo $i
-# done
+arr=()
 
 loop_mqtt() {
     # wait for esp32 input
-    var=$(../mosquitto/mosquitto_sub -h $server -p $port -u $user_name -P $password -t $topic -C 1)
-    echo $var
+    var=$(./mosquitto/mosquitto_sub -h $server -p $port -u $user_name -P $password -t $topic -C 1)
+    while ps | grep tictactoe > /dev/null
+    do
+        if [[ ! " ${array[@]} " =~ " ${var} " ]]; then
+            array+=($var)
+            echo $var
+            break
+        else
+            var=$(./mosquitto/mosquitto_sub -h $server -p $port -u $user_name -P $password -t $topic -C 1)
+        fi
+    done
+
+
 }
 playervs() {
-    loop_mqtt
-    read pc_in -t 5s
-    echo $pc_in
+    echo 1
+    echo $var
+    read -n 2 pc
+    while true
+    do
+        while true
+        do
+            if [[ ! " ${array[@]} " =~ " ${pc} " ]]; then
+                array+=($pc)
+                echo $pc
+                break
+            else
+                read -n 2 pc
+            fi
+        done
+        loop_mqtt
+    done
+
 }
 
 esp32ve() {
@@ -30,11 +53,6 @@ esp32ve() {
     echo $var
     while true
     do
-        if ! pgrep -x "tictactoe" > /dev/null
-        then
-            echo "Done"
-            break
-        fi
         loop_mqtt
     done
 }
@@ -42,13 +60,17 @@ esp32ve() {
 # CRTL+C to stop
 while true
 do
-    var=$(../mosquitto/mosquitto_sub -h $server -p $port -u $user_name -P $password -t $topic -C 1)
-    echo $var
+    echo Welcome to tictactoe
+    var=$(./mosquitto/mosquitto_sub -h $server -p $port -u $user_name -P $password -t $topic -C 1)
+    echo "Press any thing to 1v1, else wait 20s to let computer play"
+    read -t 20 -n 1
+    if [ $? = 0 ] ; then
+        playervs | $exe
 
-    # read input -t5
-    # if [ $input == "" ]; then
-    #     playervs
-    # else
+    else
         esp32ve | $exe
-    # fi
+    fi
+    arr=()
 done
+
+

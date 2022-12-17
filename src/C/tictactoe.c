@@ -2,6 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+// global variable, need fill
+const char* IP_ADDRESS = "need fill";
+const int PORT = 1883;
+const char* USER_NAME = "";
+const int PASSWORD = 123456;
+
 // function to display current board
 void display_board(char *board) {
     int i = 0;
@@ -42,8 +49,7 @@ void player_turn(char *board, char symbol) {
             printf("Location taken.\n");
         } else {
             char buffer[128];
-            snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m %d", loc);
-            printf("%s\n", buffer);
+            snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h %s -p %d -u %s -P %d -t light -m %d", IP_ADDRESS, PORT, USER_NAME, PASSWORD, loc);
             int status = system(buffer);
             if (status == 1) {
                 printf("Fail to send co-ordinate\n");
@@ -71,8 +77,7 @@ void computer_turn(char *board, char symbol) {
     } while (board[rand_location] != ' ');
 
     char buffer[128];
-    snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m %d", rand_location+1);
-    printf("%s\n", buffer);
+    snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h %s -p %d -u %s -P %d -t light -m %d", IP_ADDRESS, PORT, USER_NAME, PASSWORD, rand_location+1);
     int status = system(buffer);
     if (status == 1) {
         printf("Fail to send co-ordinate\n");
@@ -165,8 +170,9 @@ int main(void) {
         // there's winnerls
         winner(symbol, game_type);
     }
-    printf(".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m 0");
-    int status = system(".\\mosquitto\\mosquitto_pub.exe -h 192.168.50.217 -p 1883 -u mqtt-user -P 25465264 -t light -m 0");
+    char buffer[128];
+    snprintf(buffer, 128, ".\\mosquitto\\mosquitto_pub.exe -h %s -p %d -u %s -P %d -t light -m 0", IP_ADDRESS, PORT, USER_NAME, PASSWORD);
+    int status = system(buffer);
     if (status == 1) {
         printf("Fail to send co-ordinate\n");
     }
